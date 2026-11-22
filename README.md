@@ -74,7 +74,7 @@ python costs.py example.com --show
 | Google Ads Transparency Center, Meta Ad Library, LinkedIn Ad Library, Microsoft Ad Library, TikTok Ad Library | Ad counts, creatives, themes (read in the browser) | `prompts/ad_libraries.md` |
 | G2 (JSON-LD rating), Trustpilot, Product Hunt, Capterra if reachable | Official rating and review count, praise and complaint themes | `prompts/ad_libraries.md`, `prompts/collect_outside.md` |
 | App marketplaces: HubSpot, Salesforce AppExchange, Zapier, Shopify, Chrome Web Store, Figma, Google Workspace, AWS Marketplace, category partner directories | Listings, ratings, installs | `prompts/collect_outside.md` |
-| Public email archives: Really Good Emails, Milled, own newsletter archive | Email subjects, themes, offers | `prompts/collect_outside.md` |
+| Public email archives | Email subjects, themes, offers | `prompts/collect_outside.md` |
 | Company news, press releases, investor statements | Leadership, funding, M&A, pricing reviews | `prompts/collect_outside.md` |
 | Web search (the agent's built-in search) + affiliate program pages | Creator videos, affiliate terms, best-of lists | `prompts/collect_affiliate_media.md` |
 
