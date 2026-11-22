@@ -8,3 +8,4 @@ logs_tmp/
 public/
 site/business.json
 tools/.export-deny
+docs/internal/

@@ -1,85 +1,84 @@
-# Paid orders: setup and runbook (Plata by mono + Cloudflare Pages)
+# Paid orders: setup and runbook (Cloudflare Pages)
 
-One-off paid reports with no admin panel and no database of our own. The order lives in the monobank invoice, the report
-lives at a private link for `link_ttl_days`, the link lives in the email you send.
+One-off paid reports with no admin panel and no database of our own. Three order modes, set by `order_mode` in
+`site/business.json`:
 
-```
-buyer → order.html form (domain, relationship, notes, email, consent)
-      → /api/order (Cloudflare Pages Function, site/cloudflare/functions/api/order.js)
-      → monobank invoice/create → pay.mbnk.biz payment page → thanks.html
-monobank app → you see the payment; its destination and comment hold the domain, relationship, email and notes
-you → run_job.py → deliver.py → deploy → send the email with the private link
-```
+| Mode | How a buyer orders | What you need |
+|---|---|---|
+| `email` (current) | The order form opens the buyer's email app with the request filled in, addressed to `order_email`; if no email app opens, the same text is shown to copy. You reply with a payment link. | `order_email` |
+| `form` | The form posts to `functions/api/order.js`, which creates a Plata by mono invoice and sends the buyer to the mono payment page; the order travels in the invoice purpose and comment. | `MONO_TOKEN`, `PRICE_KOP` in Cloudflare |
+| `link` | A plain payment link button (`payment_link_en` / `payment_link_uk`). | a provider with reusable payment links |
 
-Seller: a FOP with a monobank business account and Plata by mono (internet acquiring). Fees per monobank's page:
-1.3% per card payment, 2% for foreign cards ([monobank e-comm](https://monobank.ua/e-comm)). Prices are in hryvnias;
-foreign buyers pay by card and their bank converts. Not legal or tax advice: check the points in section 4 with an accountant.
+The report lives at a private link (`/r/<token>/`) for `link_ttl_days`; the link lives in the email you send.
 
-## 1. One-time setup (about 1 hour)
+## 1. Cloudflare Pages from the private repository (once, about 15 minutes)
 
-1. **Plata by mono.** In the monobank business app or web cabinet, turn on internet acquiring (Plata by mono) for the FOP
-   account and create an API token for it. That token is the `X-Token` the function sends.
-2. **Business details.** Copy `site/business.example.json` to `site/business.json` (git-ignored) and fill every field:
-   `seller_name`, `seller_legal` ("ФОП <name>, РНОКПП <number>"), `seller_address`, `seller_country`, `registration`,
-   `contact_email`, `price` (as shown, for example "1 990 грн"), `tax_note`, `email_provider`, `governing_law` (Ukraine).
-   Keys ending in `_uk` override the value on Ukrainian pages. `order_mode` stays `form`.
-3. **Email.** Use an address on your own domain for `contact_email` (Cloudflare Email Routing forwards it to your mailbox
-   for free) and name the mailbox provider in `email_provider`.
-4. **Cloudflare Pages project.** Create a project (Direct Upload) and add your domain. In Settings → Environment variables
-   (Production) add:
-   - `MONO_TOKEN`: the Plata by mono token, type **Secret**
-   - `PRICE_KOP`: the price in kopiyky, for example `199000` for 1 990 UAH (must match `price` on the site)
-   - optional `BASKET=1` if automatic fiscal receipts are on (sends a one-line basket with the invoice)
-5. **Build and deploy** (the function is picked up from `site/cloudflare/functions/`):
-   ```bash
-   python site/build_site.py notion.com figma.com miro.com linear.app
-   ```
-   ```bash
-   cd site/cloudflare && npx wrangler pages deploy ../../public --project-name marketing-osint
-   ```
-   `public/_headers` sets `noindex`, `no-referrer` and `no-store` on `/r/*`, `noindex` on the thanks pages, and long caching
-   for the self-hosted fonts. Never deploy `public/` from a public Git repository: delivered reports would be readable there.
-6. **Test with 1 hryvnia.** Set `PRICE_KOP=100`, deploy, order a report for any domain, pay with your own card, and check
-   the payment in the monobank app: the purpose should read "Marketing OSINT report: <domain>" and the comment should hold
-   the relationship, email and notes. Refund it in the app, set `PRICE_KOP` back, deploy again.
-   The fields `comment` and `customerEmails` inside `merchantPaymInfo` are not confirmed by a live test yet; if the test shows
-   an error in the Pages logs ("mono invoice/create failed"), remove them from `order.js` and keep `reference` + `destination`.
+1. Cloudflare dashboard → Workers & Pages → Create → Pages → **Connect to Git** → `megasvf/marketing-osint-private`.
+2. Build settings:
+   - Production branch: `main`
+   - Framework preset: None
+   - Build command: `python3 site/build_site.py notion.com figma.com miro.com linear.app`
+   - Build output directory: `public`
+   - Root directory: empty (repository root)
+   - Environment variable: `PYTHON_VERSION` = `3.12` (the repo also has `.python-version`)
+3. The build uses only the Python standard library: it rebuilds `public/` from `site/`, `output/` and `data/` (committed in
+   the private repo) and keeps `public/r/` (delivered reports). `functions/` at the repository root is deployed as Pages
+   Functions automatically; in `email` mode nothing calls it.
+4. Custom domain: the Pages project → Custom domains → add the domain. Put `site_url` in `site/business.json`
+   (for example `https://example.com`) so `deliver.py` prints full links.
+5. `public/_headers` sets `noindex`, `no-referrer` and `no-store` on `/r/*`, `noindex` on the thanks pages, and long
+   caching for the self-hosted fonts. Never connect the **public** repository to the production site: it has no
+   `data/`, `output/` or delivered reports.
+
+`site/business.json` is git-ignored in general but force-added in the private repository, because the Cloudflare build
+reads it. Fill the seller fields before launch (`seller_name`, `seller_legal` as "ФОП <name>, РНОКПП <number>",
+`seller_address`, `registration`): until then the legal pages show red "to fill" marks.
 
 ## 2. Each order (about 40 minutes, mostly waiting)
 
-1. The monobank app notifies you of the payment. Open it: the purpose holds the domain; the comment holds
-   `domain | relationship | email | lang | notes`.
-2. Refuse when the subject is a private individual or the purpose looks unlawful: refund in full in the app and reply to the buyer.
-3. Build the report:
+1. A request arrives at `order_email`: company website, relationship, notes, the buyer's email, language, "terms: accepted".
+2. Refuse when the subject is a private individual or the purpose looks unlawful; otherwise reply with a payment link
+   for the price ($15, charged in hryvnias by Plata by mono: create an invoice or payment link in the monobank business app).
+3. After the payment arrives, build the report:
    ```bash
    python run_job.py <domain> --brand "<Brand>" --category "<category>" --relationship <relationship> --no-ahrefs
    ```
-   Add `--alt` / `--competitor` from the notes.
 4. Check: `output/<domain>/index.html` opens, `data/<domain>/_logs/factcheck_report.md` was applied, and at least
    `min_sources` sources were collected. If not, tell the buyer and offer the refund the Refund policy promises.
-5. Deliver (lang from the comment):
+5. Deliver (prints the private link and a ready email):
    ```bash
-   python deliver.py <domain> --email <buyer> --lang <en|uk> --order <invoice reference>
+   python deliver.py <domain> --email <buyer> --lang <en|uk> --order <payment id>
    ```
-6. Deploy again (step 1.5), open the link once, then send the email from `contact_email`.
+6. Publish the report through the private repository (Cloudflare rebuilds on push):
+   ```bash
+   git add -f public/r data/<domain> output/<domain> && git commit -m "Deliver <domain>" && git push
+   ```
+7. Open the link once, then send the email from `order_email`.
 
 ## 3. Housekeeping
 
-- Weekly: `python deliver.py --purge`, then deploy. It deletes reports whose `link_ttl_days` have passed.
+- Weekly: `python deliver.py --purge`, then commit and push. It deletes reports whose `link_ttl_days` have passed.
 - `python deliver.py --list` shows what is live and until when.
 - Corrections: rebuild the report, deliver again (new link), send the new link, delete the old folder.
-- Keep the provider's payment records as tax law requires; they are your order book.
+- Keep payment records as tax law requires; the monobank statement is your order book.
 
-## 4. Legal pages: what they cover and what to check
+## 4. Switching to the automatic mono form later
+
+1. Turn on internet acquiring (Plata by mono) in the monobank business cabinet and create its API token.
+2. Pages project → Settings → Environment variables (Production): `MONO_TOKEN` (Secret) and `PRICE_KOP` (price in kopiyky);
+   optional `BASKET=1` if automatic fiscal receipts are on.
+3. Set `order_mode` to `form`, push. Test with `PRICE_KOP=100` (1 hryvnia) and refund it in the app. The `comment` and
+   `customerEmails` fields in `merchantPaymInfo` are not confirmed by a live test yet; if mono rejects them (see the Pages
+   logs), remove them from `functions/api/order.js`.
+
+## 5. Legal pages: what they cover and what to check
 
 The terms, privacy notice, refund policy and contact page are plain-language drafts written without a lawyer. They cover:
-who sells; the service and delivery; payment and receipts; refusals; the private link and its lifetime; accuracy limits;
-permitted use; the EU/UK 14-day withdrawal right and how it ends on delivery (the form asks for that consent); liability
-capped at the price; complaints; the data you collect, why, where it is kept, who processes it, transfers abroad,
-retention, rights, and no cookies. Check with an accountant before the first real payment:
+who sells; the service (marketing research for businesses) and delivery; payment and receipts; refusals; the private link
+and its lifetime; accuracy limits; permitted use; the EU/UK 14-day withdrawal right and how it ends on delivery (the form
+asks for that consent); liability capped at the price; complaints; the data you collect, why, where it is kept, who
+processes it, transfers abroad, retention, rights, and no cookies. Check with an accountant before the first real payment:
 - FOP group and tax rate for selling information services to foreign buyers.
-- Fiscal receipts (PRRO): card payments to a FOP usually need them; Plata by mono offers automatic fiscalization (then set `BASKET=1`).
-- EU VAT: business buyers are reverse-charged, but sales to EU consumers can make a non-EU seller liable for EU VAT from the
-  first sale. The simplest position is to sell for business use only; the Terms describe the service as marketing research
-  for organisations.
+- Fiscal receipts (PRRO) for card payments.
+- EU VAT: business buyers are reverse-charged; sales to EU consumers can make a non-EU seller liable for EU VAT.
 - That `seller_legal`, `seller_address` and `registration` match the FOP record exactly.

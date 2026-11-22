@@ -1,5 +1,5 @@
 {
- "_comment": "Copy to site/business.json (git-ignored) and fill every field. Empty fields show on the site as a red 'to fill' mark. A key ending in _uk overrides that key on the Ukrainian pages. checkout_fields: 'yes' when the payment page itself asks for the company website (Stripe custom fields), 'no' when buyers send it by email. mor_note: one sentence when a merchant of record sells on your behalf (Paddle, Lemon Squeezy), else empty. self_host_fonts: 'yes' serves design/fonts at /fonts/ (no Google request). order_mode: 'form' = the site's order form posts to the Cloudflare function that creates a Plata by mono invoice (set MONO_TOKEN and PRICE_KOP in Cloudflare); 'link' = a plain payment link (payment_link_en/_uk).",
+ "_comment": "Copy to site/business.json (git-ignored) and fill every field. Empty fields show on the site as a red 'to fill' mark. A key ending in _uk overrides that key on the Ukrainian pages. checkout_fields: 'yes' when the payment page itself asks for the company website (Stripe custom fields), 'no' when buyers send it by email. mor_note: one sentence when a merchant of record sells on your behalf (Paddle, Lemon Squeezy), else empty. self_host_fonts: 'yes' serves design/fonts at /fonts/ (no Google request). order_mode: 'email' = the order form opens the buyer's email app with the request to order_email; you reply with a payment link. 'form' = the site's order form posts to the Cloudflare function that creates a Plata by mono invoice (set MONO_TOKEN and PRICE_KOP in Cloudflare); 'link' = a plain payment link (payment_link_en/_uk).",
  "site_url": "",
  "seller_name": "",
  "seller_legal": "",
@@ -35,5 +35,6 @@
  "governing_law_uk": "",
  "hosting_provider_uk": "Cloudflare (Cloudflare Pages)",
  "self_host_fonts": "yes",
- "order_mode": "form"
+ "order_mode": "email",
+ "order_email": ""
 }

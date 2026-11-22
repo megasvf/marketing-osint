@@ -26,7 +26,7 @@ Each company gets two formats. The company dossier (`index.html`) covers passpor
 | `site/business.example.json` | Seller details, price, order mode and payment links (copy to the git-ignored `site/business.json`) |
 | `run_job.py` | Headless runner: one command from collectors to a built, fact-checked report |
 | `deliver.py` | Puts a paid report at a private link (`public/r/<token>/`), prints the email; `--purge` removes expired links |
-| `docs/ORDERS.md` | Paid orders: Plata by mono order form (Cloudflare Pages Function `site/cloudflare/functions/api/order.js`), setup and the per-order runbook |
+| `docs/ORDERS.md` | Paid orders: Plata by mono order form (order by email, or the Cloudflare Pages Function `functions/api/order.js` for Plata by mono), setup and the per-order runbook |
 
 `data/` (collector output), `output/` (built pages) and `reader.json` (your reader profile) are git-ignored and never committed. `reader.py` loads the profile.
 

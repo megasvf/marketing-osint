@@ -69,7 +69,8 @@ def deliver(domain, email, lang, order):
     v = {"company": a.get("company") or domain, "domain": domain, "url": url, "expires": expires,
          "seller": b.get("seller_name") or "Marketing OSINT"}
     print(f"delivered: {dst}\nlink: {url}\nexpires: {expires}\n\nTo: {email}\nSubject: {subject.format(**v)}\n\n{body.format(**v)}\n")
-    print("Next: deploy public/ (for example `npx wrangler pages deploy public`), open the link once to check it, then send the email.")
+    print(f"Next: git add -f public/r data/{domain} output/{domain} && git commit -m 'Deliver {domain}' && git push "
+          "(Cloudflare Pages rebuilds from the private repo), open the link once, then send the email.")
 
 
 def purge(dry=False):

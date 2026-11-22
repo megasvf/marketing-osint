@@ -107,6 +107,16 @@ HOME = {
 }
 
 ORDER = {
+    "email_mode": {
+        "steps": [("You ask", "Fill in the form: the company's website, how it relates to you, anything we should know. Your email app opens with the request ready to send to {order_email}."),
+                  ("You pay", "We reply within one business day with a payment link ({payment_provider}). The price is charged in hryvnias at the bank's rate."),
+                  ("You read", "We build the report, run both fact-checks, and email you a private link to the dossier, the detailed report and the raw AI answers.")],
+        "submit": "Send the request",
+        "after": "Your email app opens with the request addressed to {order_email}. We reply with a payment link within one business day.",
+        "fallback_h": "Email app did not open?",
+        "fallback_p": "Copy the text below and send it to {order_email}.",
+        "subject": "Report request",
+    },
     "form": {
         "h": "Order", "domain": "Company website", "domain_ph": "example.com",
         "rel": "How the company relates to you",
@@ -171,7 +181,7 @@ TERMS = {
     "sections": [
         ("Who we are", "These terms are between you and {seller_name} ({seller_legal}), {seller_address}, {seller_country} (\"we\"). Contact: {contact_email}."),
         ("The service", "For a one-off payment we prepare one report about one company that you name by its website. The report is built from public sources and from the tools listed on the order page, checked by an automatic gate and a fact-check on live pages, written in English, and delivered as a private link by email within {turnaround_days} business days of payment. The service is marketing research for businesses and organisations; it is not offered for personal use."),
-        ("Ordering and payment", "You order and pay through {payment_provider}. The price is shown on the order page ({price}, {tax_note}). {payment_provider} processes your card; we never see your card details. {payment_provider} sends you a receipt.{mor_note}"),
+        ("Ordering and payment", "You order on the order page, we may reply by email with a payment link, and you pay through {payment_provider}. The price is shown on the order page ({price}, {tax_note}). {payment_provider} processes your card; we never see your card details. {payment_provider} sends you a receipt.{mor_note}"),
         ("What you give us", "The website of a company, how it relates to you, optional notes, and your email address. The subject of a report must be a business. We may refuse an order, with a full refund, when the subject is a private individual, when the purpose appears unlawful, or when we cannot read enough of the company's public sources."),
         ("Delivery and the link", "The report is delivered as a long random link. Anyone who has the link can open it, so keep it private. The link stays available for {link_ttl_days} days and is then deleted. Save the pages if you need them for longer."),
         ("Accuracy", "The report describes public information as it stood on the compile date. Traffic, keyword and ad figures are estimates from third parties. Sources that block automated readers are shown as gaps. The report is marketing research, not legal, financial or investment advice, and we do not guarantee that it is complete or error free."),

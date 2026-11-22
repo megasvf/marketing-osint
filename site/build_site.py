@@ -177,7 +177,10 @@ python run_job.py example.com --brand Example --category "form builder"</pre><p>
 def order(C, ctx, lang, prefix):
     O, u = C.ORDER, C.UI
     f = lambda s: fmt(s, ctx)  # noqa: E731
-    if business(lang).get("order_mode", "link") == "form":
+    mode = business(lang).get("order_mode", "link")
+    if mode == "email":
+        buy = email_form(O["form"], O["email_mode"], ctx, lang)
+    elif mode == "form":
         buy = order_form(O["form"], ctx, lang)
     else:
         link = ctx.get(f"payment_link_{lang}") or ctx.get("payment_link_en")
@@ -186,12 +189,14 @@ def order(C, ctx, lang, prefix):
     pay = (O["pay_with_fields"] if business(lang).get("checkout_fields") == "yes" or business(lang).get("order_mode") == "form"
            else O["pay_without_fields"])
     steps = "".join(f"<li><b>{esc(t)}</b><span>{f(pay) if i == 0 else esc(d)}</span></li>" for i, (t, d) in enumerate(O["steps"]))
+    if mode == "email":
+        steps = "".join(f"<li><b>{esc(t)}</b><span>{f(d)}</span></li>" for t, d in O["email_mode"]["steps"])
     faq = "".join(f"<details><summary>{esc(q)}</summary><p>{f(a)}</p></details>" for q, a in O["faq"])
     return (head(C, lang, "order", f(O["title"]), f(O["description"]), prefix) + nav(C, lang, "order", prefix) + f"""<main id="top">
 <section class="hero"><h1>{O["h1"]}</h1><p class="lede">{O["lede"]}</p>
 <div class="buy"><dl class="terms3"><div><dt>{O["price_label"]}</dt><dd>{ctx["price"]}<small>{f(O["price_note"])}</small></dd></div>
 <div><dt>{O["turn_label"]}</dt><dd>{f(O["turn_value"])}</dd></div><div><dt>{O["link_label"]}</dt><dd>{f(O["link_value"])}</dd></div></dl>
-{buy}{"" if business(lang).get("order_mode") == "form" else f'<p class="consent">{O["consent"]}</p>'}<p class="muted small">{u["reports_english"]}</p></div></section>
+{buy}{"" if business(lang).get("order_mode") in ("form", "email") else f'<p class="consent">{O["consent"]}</p>'}<p class="muted small">{u["reports_english"]}</p></div></section>
 <section><h2>{O["steps_h"]}</h2><ol class="steps s3">{steps}</ol></section>
 <section><div class="two"><div><h2>{O["get_h"]}</h2><ul class="plain dots">{"".join(f"<li>{esc(x)}</li>" for x in O["get"])}</ul></div>
 <div><h2>{O["sources_h"]}</h2><p>{f(O["sources_p"])}</p><h3>{O["not_h"]}</h3><ul class="plain dots">{"".join(f"<li>{esc(x)}</li>" for x in O["not"])}</ul></div></div></section>
@@ -200,7 +205,7 @@ def order(C, ctx, lang, prefix):
 
 
 def order_form(F, ctx, lang):
-    """The order form posts to the Cloudflare Pages Function /api/order (site/cloudflare/functions/api/order.js),
+    """The order form posts to the Cloudflare Pages Function /api/order (functions/api/order.js),
     which creates the payment and redirects to the provider's page. Errors come back as ?error=<code>."""
     f = lambda s: fmt(s, ctx)  # noqa: E731
     opts = "".join(f'<option value="{v}">{esc(t)}</option>' for v, t in F["rels"])
@@ -215,6 +220,35 @@ def order_form(F, ctx, lang):
 <label class="chk" for="f-consent"><input id="f-consent" type="checkbox" name="consent" value="yes" required><span>{F["consent"]}</span></label>
 <button class="btn big" type="submit">{F["submit"]} · {ctx["price"]}</button><p class="muted small">{f(F["after"])}</p></form>
 <script>(function(){{var c=new URLSearchParams(location.search).get("error");if(!c)return;var e=document.querySelector('.err[data-code="'+c+'"]')||document.querySelector('.err[data-code="form"]');if(e)e.hidden=false;}})();</script>"""
+
+
+def email_form(F, E, ctx, lang):
+    """No server: the form opens the buyer's email app with the request filled in (mailto), and shows the same text
+    to copy when no email app opens. Requests land in order_email; you reply with a payment link."""
+    f = lambda s: fmt(s, ctx)  # noqa: E731
+    opts = "".join(f'<option value="{v}">{esc(t)}</option>' for v, t in F["rels"])
+    errs = "".join(f'<p class="err" data-code="{k}" hidden>{f(F["errors"][k])}</p>' for k in ("domain", "email", "consent"))
+    labels = json.dumps({"domain": F["domain"], "rel": F["rel"], "notes": F["notes"], "email": F["email"], "lang": lang})
+    return f"""<form id="form" class="oform" data-to="{ctx["order_email"]}" data-subject="{esc(E["subject"])}" novalidate>{errs}
+<label for="f-domain">{F["domain"]}</label><input id="f-domain" name="domain" required inputmode="url" autocomplete="off" placeholder="{F["domain_ph"]}" maxlength="120">
+<label for="f-rel">{F["rel"]}</label><select id="f-rel" name="relationship" required>{opts}</select>
+<label for="f-notes">{F["notes"]}</label><input id="f-notes" name="notes" maxlength="300" placeholder="{esc(F["notes_ph"])}">
+<label for="f-email">{F["email"]}</label><input id="f-email" name="email" type="email" required autocomplete="email" maxlength="200">
+<label class="chk" for="f-consent"><input id="f-consent" type="checkbox" name="consent" value="yes" required><span>{F["consent"]}</span></label>
+<button class="btn big" type="submit">{E["submit"]} · {ctx["price"]}</button><p class="muted small">{f(E["after"])}</p>
+<div id="fallback" class="fallback" hidden><p><b>{E["fallback_h"]}</b> {f(E["fallback_p"])}</p><textarea id="f-copy" rows="6" readonly></textarea></div></form>
+<script>(function(){{var F=document.getElementById("form"),L={labels};
+function err(c){{F.querySelectorAll(".err").forEach(function(e){{e.hidden=e.dataset.code!==c}});}}
+F.addEventListener("submit",function(ev){{ev.preventDefault();
+var d=F.domain.value.trim().toLowerCase().replace(/^https?:\/\//,"").replace(/^www\./,"").split(/[\/?#\s]/)[0];
+if(!/^(?!-)(?:[a-z0-9-]{{1,63}}\.)+[a-z]{{2,24}}$/.test(d)){{err("domain");return;}}
+if(!/^[^\s@<>]+@[^\s@<>]+\.[a-z]{{2,24}}$/i.test(F.email.value.trim())){{err("email");return;}}
+if(!F.consent.checked){{err("consent");return;}} err("");
+var r=F.relationship.options[F.relationship.selectedIndex].text;
+var body=L.domain+": "+d+"\\n"+L.rel+": "+r+" ("+F.relationship.value+")\\n"+L.notes+": "+F.notes.value.trim()+"\\n"+L.email+": "+F.email.value.trim()+"\\nlang: "+L.lang+"\\nterms: accepted";
+var subj=F.dataset.subject+": "+d;
+document.getElementById("f-copy").value=subj+"\\n\\n"+body;document.getElementById("fallback").hidden=false;
+location.href="mailto:"+F.dataset.to+"?subject="+encodeURIComponent(subj)+"&body="+encodeURIComponent(body);}});}})();</script>"""
 
 
 def thanks(C, ctx, lang, prefix):
@@ -235,7 +269,7 @@ def legal(C, ctx, lang, prefix, page, P):
 
 
 CSS = """
-*{box-sizing:border-box}html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+*{box-sizing:border-box}[hidden]{display:none!important}html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--font-sans)}
 a{color:inherit;text-underline-offset:2px}a:focus-visible,summary:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 main,.nav,.foot{max-width:1120px;margin:0 auto;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
@@ -289,6 +323,7 @@ mark.todo{background:var(--bad-bg);color:var(--bad);font:600 .85em/1.3 var(--fon
 .oform input:focus,.oform select:focus{outline:2px solid var(--ink);outline-offset:1px}
 .oform .chk{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;font-weight:400;font-size:13.5px;color:var(--ink-2);margin:10px 0}
 .oform .chk input{width:18px;height:18px;margin-top:2px}.oform .btn{border:0;cursor:pointer;justify-self:start;margin-top:4px}
+.fallback{margin-top:12px;display:grid;gap:8px}.fallback textarea{font:13px/1.5 var(--font-mono);padding:10px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surf);color:var(--ink);width:100%}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 .err{background:var(--bad-bg);color:var(--bad);border-radius:var(--r-s);padding:10px 12px;font-size:14px}
 .faq{display:grid;gap:0;max-width:820px}.faq details{border-top:1px solid var(--line);padding:14px 0}.faq summary{cursor:pointer;font-weight:600}
