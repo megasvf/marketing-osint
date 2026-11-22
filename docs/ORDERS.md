@@ -38,7 +38,7 @@ reads it. Fill the seller fields before launch (`seller_name`, `seller_legal` as
 
 1. A request arrives at `order_email`: company website, relationship, notes, the buyer's email, language, "terms: accepted".
 2. Refuse when the subject is a private individual or the purpose looks unlawful; otherwise reply with a payment link
-   for the price ($15, charged in hryvnias by Plata by mono: create an invoice or payment link in the monobank business app).
+   for the price ($9, charged in hryvnias by Plata by mono: create an invoice or payment link in the monobank business app).
 3. After the payment arrives, build the report:
    ```bash
    python run_job.py <domain> --brand "<Brand>" --category "<category>" --relationship <relationship> --no-ahrefs
