@@ -58,6 +58,11 @@ class Ctx(dict):
         if self.get("mor_note"):
             self["mor_note"] = " " + self["mor_note"]
         self.todo = todo
+        # One seller line that reads naturally before a business registration: legal form and address are added
+        # only when filled; the name stays required.
+        name = self["seller_name"]
+        tail = "".join(f", {self[k]}" for k in ("seller_address", "seller_country") if k in self)
+        self["seller"] = name + (f" ({self['seller_legal']})" if "seller_legal" in self else "") + tail
 
     def __missing__(self, key):
         MISSING.add(key)
@@ -377,6 +382,7 @@ def main(domains):
         base.mkdir(exist_ok=True)
         prefix = "" if lang == "en" else "../"
         ctx = Ctx({**business(lang), "name": BR.NAME, "n_src": str(len(B.SOURCE_LABELS)), "home": "index.html"}, C.UI["todo"])
+        ctx.setdefault("registration", esc(C.UI["registration_pending"]))
         pages = {"index": home(C, ctx, exs, lang, prefix), "order": order(C, ctx, lang, prefix), "thanks": thanks(C, ctx, lang, prefix),
                  "terms": legal(C, ctx, lang, prefix, "terms", C.TERMS), "privacy": legal(C, ctx, lang, prefix, "privacy", C.PRIVACY),
                  "refunds": legal(C, ctx, lang, prefix, "refunds", C.REFUNDS), "contact": legal(C, ctx, lang, prefix, "contact", C.CONTACT)}

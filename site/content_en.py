@@ -11,6 +11,7 @@ UI = {
     "nav_order": "Order a report", "nav_github": "GitHub", "lang_switch": "Українською",
     "foot_terms": "Terms", "foot_privacy": "Privacy", "foot_refunds": "Refunds", "foot_contact": "Contact",
     "todo": "to fill",
+    "registration_pending": "Not registered as a business yet. The seller's registration details will appear on this page before we take the first payment.",
     "card_sources": "Sources collected", "card_partial": "partial", "card_evidence": "Evidence links", "card_gaps": "Gaps",
     "card_more": "and more", "card_dossier": "Dossier", "card_detailed": "Detailed report", "card_compiled": "Compiled",
     "card_headless": "built by <code>run_job.py</code>, no human in the loop; no Ahrefs in that run",
@@ -179,7 +180,7 @@ LEGAL_INTRO = "Last updated {legal_updated}. This page is a plain-language draft
 TERMS = {
     "title": "Terms of Service", "description": "Terms for ordering a marketing OSINT report.",
     "sections": [
-        ("Who we are", "These terms are between you and {seller_name} ({seller_legal}), {seller_address}, {seller_country} (\"we\"). Contact: {contact_email}."),
+        ("Who we are", "These terms are between you and {seller} (\"we\"). Contact: {contact_email}."),
         ("The service", "For a one-off payment we prepare one report about one company that you name by its website. The report is built from public sources and from the tools listed on the order page, checked by an automatic gate and a fact-check on live pages, written in English, and delivered as a private link by email within {turnaround_days} business days of payment. The service is marketing research for businesses and organisations; it is not offered for personal use."),
         ("Ordering and payment", "You order on the order page, we may reply by email with a payment link, and you pay through {payment_provider}. The price is shown on the order page ({price}, {tax_note}). {payment_provider} processes your card; we never see your card details. {payment_provider} sends you a receipt.{mor_note}"),
         ("What you give us", "The website of a company, how it relates to you, optional notes, and your email address. The subject of a report must be a business. We may refuse an order, with a full refund, when the subject is a private individual, when the purpose appears unlawful, or when we cannot read enough of the company's public sources."),
@@ -197,7 +198,7 @@ TERMS = {
 PRIVACY = {
     "title": "Privacy notice", "description": "What personal data the order service uses and why.",
     "sections": [
-        ("Controller", "{seller_name} ({seller_legal}), {seller_address}, {seller_country}. Contact for privacy questions: {contact_email}."),
+        ("Controller", "{seller}. Contact for privacy questions: {contact_email}."),
         ("What we collect", "When you order: your email address, your name and billing details as {payment_provider} collects them, the company website you name, the relationship you choose and any notes. We do not see or store card numbers."),
         ("Rules we follow", "The Law of Ukraine \"On Personal Data Protection\" and, for people in the European Union or the UK, the GDPR and the UK GDPR."),
         ("Transfers abroad", "Our processors may handle data outside your country, including in the United States. We use providers that offer standard contractual clauses or an equivalent safeguard."),
@@ -225,7 +226,7 @@ REFUNDS = {
 CONTACT = {
     "title": "Contact", "description": "Who runs the order service and how to reach us.",
     "sections": [
-        ("Seller", "{seller_name} ({seller_legal})<br>{seller_address}<br>{seller_country}"),
+        ("Seller", "{seller}"),
         ("Email", "{contact_email}"),
         ("Registration", "{registration}"),
     ],

@@ -31,8 +31,10 @@ The report lives at a private link (`/r/<token>/`) for `link_ttl_days`; the link
    `data/`, `output/` or delivered reports.
 
 `site/business.json` is git-ignored in general but force-added in the private repository, because the Cloudflare build
-reads it. Fill the seller fields before launch (`seller_name`, `seller_legal` as "ФОП <name>, РНОКПП <number>",
-`seller_address`, `registration`): until then the legal pages show red "to fill" marks.
+reads it. Before a business registration only `seller_name` is required: the legal pages show one seller line built from
+the filled fields ("Marketing OSINT (private individual), Ukraine") and, while `registration` is empty, a note that the
+registration details appear before the first payment. Once registered, fill `seller_legal` ("ФОП <name>, РНОКПП <number>"),
+`seller_address` and `registration`, then push.
 
 ## 2. Each order (about 40 minutes, mostly waiting)
 
