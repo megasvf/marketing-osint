@@ -1,0 +1,20 @@
+/* Design tokens: the single source for report pages and the showcase site. See DESIGN.md. */
+:root{color-scheme:light;
+--font-sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+--font-serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+--font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+--ink:#16181d;--ink-2:#4d5260;--line:#e2e4e9;--bg:#ffffff;--surf:#f4f5f7;
+--brand:#0b6b66;--brand-ink:#ffffff;--mark:#b9e8e1;
+--s1:#2a78d6;--s2:#eb6834;--s3:#8a5cf0;--mut:#c9ccd3;
+--ok:#1f7a3a;--ok-bg:#e6f4ea;--warn:#8a5a00;--warn-bg:#fdf1d8;--bad:#a12a2a;--bad-bg:#fbe5e5;--none:#5c606b;--none-bg:#eceef1;
+--r-s:6px;--r-m:10px;--r-l:16px}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;
+--ink:#eceef2;--ink-2:#aeb3be;--line:#2c2f36;--bg:#111317;--surf:#1a1d22;
+--brand:#5ccfc2;--brand-ink:#111317;--mark:#0f514c;
+--s1:#3987e5;--s2:#d95926;--s3:#9a78f5;--mut:#454953;
+--ok:#7fd69a;--ok-bg:#16301f;--warn:#f0c46b;--warn-bg:#33280f;--bad:#f19a9a;--bad-bg:#3a1a1a;--none:#a8adb8;--none-bg:#24272d}}
+:root[data-theme=dark]{color-scheme:dark;
+--ink:#eceef2;--ink-2:#aeb3be;--line:#2c2f36;--bg:#111317;--surf:#1a1d22;
+--brand:#5ccfc2;--brand-ink:#111317;--mark:#0f514c;
+--s1:#3987e5;--s2:#d95926;--s3:#9a78f5;--mut:#454953;
+--ok:#7fd69a;--ok-bg:#16301f;--warn:#f0c46b;--warn-bg:#33280f;--bad:#f19a9a;--bad-bg:#3a1a1a;--none:#a8adb8;--none-bg:#24272d}

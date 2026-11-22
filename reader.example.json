@@ -1,0 +1,19 @@
+{
+ "name": "Acme Forms",
+ "domain": "acmeforms.example",
+ "what_we_sell": "Online form and survey builder for small marketing teams",
+ "pricing": [
+  {"plan": "Free", "price": 0, "unit": "per month", "note": "100 responses a month", "url": "https://acmeforms.example/pricing"},
+  {"plan": "Pro", "price": 29, "unit": "per month", "note": "billed monthly, 1 seat", "url": "https://acmeforms.example/pricing"}
+ ],
+ "ideal_customer": [
+  "Marketing team of 2 to 20 people",
+  "Collects leads or feedback on its own website",
+  "Uses a CRM it wants forms to feed"
+ ],
+ "marketing_units": ["Content", "SEO", "Paid", "Email / lifecycle", "Social", "PR", "Partnerships", "Product marketing", "Design"],
+ "rules": [
+  "CRMs are partners, never competitors",
+  "Never restate our internal metrics as public facts"
+ ]
+}

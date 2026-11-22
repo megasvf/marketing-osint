@@ -1,0 +1,10 @@
+data/
+output/
+__pycache__/
+*.pyc
+.env
+reader.json
+logs_tmp/
+public/
+site/business.json
+tools/.export-deny

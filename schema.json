@@ -1,0 +1,18 @@
+{
+  "$comment": "Collector contract. Every collector (script or agent) writes data/<domain>/<source>.json in this shape.",
+  "source": "site | wayback | ahrefs_paid | ad_libraries | ahrefs_organic | similarweb | social | earned | ai_perception | hiring",
+  "domain": "example.com",
+  "fetched_at": "ISO-8601 UTC",
+  "status": "ok | partial | unavailable",
+  "note": "why partial/unavailable, method used, limits hit",
+  "items": [
+    {
+      "type": "claim | cta | page | metric | ad | keyword | post | review_theme | mention | ai_answer | job | change | series",
+      "text": "normalized statement in English, <= 40 words",
+      "quote": "verbatim fragment from the source, <= 25 words (optional for metrics)",
+      "url": "REQUIRED: exact page/API URL the item came from",
+      "date": "YYYY-MM-DD if known",
+      "meta": {}
+    }
+  ]
+}
